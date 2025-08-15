@@ -16,7 +16,8 @@ import (
 func MysqlConnection(ctx context.Context, logger *logger.Logger, cfg *config.Config) (*gorm.DB, *sql.DB) {
 	mc := cfg.Database
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8&parseTime=True&loc=Local",
-		mc.User, mc.Password, &mc.Host, mc.Port, mc.DBName)
+		mc.User, mc.Password, mc.Host, mc.Port, mc.DBName,
+	)
 
 	logLevel := gormLogger.Info
 	if cfg.App.IsProduction() {

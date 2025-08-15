@@ -23,9 +23,10 @@ type RedisConfig struct {
 
 type AppConfig struct {
 	Environment string
-	Port        int
+	Port        string
 	Name        string
 	Version     string
+	Host        string
 }
 
 type LogConfig struct {
@@ -62,7 +63,8 @@ func loadRedisConfig() RedisConfig {
 func loadAppConfig() AppConfig {
 	return AppConfig{
 		Environment: getEnv("APP_ENV", "development"),
-		Port:        getEnvAsInt("APP_PORT", 8080),
+		Port:        getEnv("APP_PORT", "8080"),
+		Host:        getEnv("APP_HOST", "0.0.0.0"),
 		Name:        getEnv("APP_NAME", "sms-gateway"),
 		Version:     getEnv("APP_VERSION", "1.0.0"),
 	}

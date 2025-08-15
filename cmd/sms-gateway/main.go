@@ -2,13 +2,17 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/mohammadghasemi1379/sms-gateway/config"
-	"github.com/mohammadghasemi1379/sms-gateway/connection"
+	// "github.com/mohammadghasemi1379/sms-gateway/connection"
+	"github.com/mohammadghasemi1379/sms-gateway/internal/handler"
 	"github.com/mohammadghasemi1379/sms-gateway/pkg/logger"
 )
 
@@ -27,9 +31,39 @@ func main() {
 		"start_time", time.Now(),
 	)
 
-	redisConnection := connection.RedisConnection(ctx, logger, *cfg)
-	redisPubSubConnection := connection.RedisPubSubConnection(ctx, logger, *cfg)
-	mysqlConnection, _ := connection.MysqlConnection(ctx, logger, cfg)
+	// _ = connection.RedisConnection(ctx, logger, *cfg)
+	// _ = connection.RedisPubSubConnection(ctx, logger, *cfg)
+	// _, _ = connection.MysqlConnection(ctx, logger, cfg)
+
+	// Initialize Gin router
+	gin.SetMode(gin.ReleaseMode)
+	router := gin.Default()
+
+	// Initialize handlers
+	smsHandler := handler.NewSMSHandler()
+
+	// Setup routes
+	api := router.Group("/api")
+	{
+		sms := api.Group("/sms")
+		{
+			sms.POST("/send", smsHandler.Send)
+		}
+	}
+
+	// Create HTTP server
+	server := &http.Server{
+		Addr:    fmt.Sprintf("%s:%s", cfg.App.Host, cfg.App.Port),
+		Handler: router,
+	}
+
+	// Start server in a goroutine
+	go func() {
+		logger.Info(ctx, "Starting HTTP server", "address", server.Addr)
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			logger.Error(ctx, "Failed to start server", "error", err)
+		}
+	}()
 
 	// Wait for shutdown signal
 	<-ctx.Done()
@@ -38,4 +72,14 @@ func main() {
 		"Shutting down SMS Gateway service",
 		"shutdown_time", time.Now(),
 	)
+
+	// Shutdown server gracefully
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer shutdownCancel()
+
+	if err := server.Shutdown(shutdownCtx); err != nil {
+		logger.Error(ctx, "Server forced to shutdown", "error", err)
+	} else {
+		logger.Info(ctx, "Server exited gracefully")
+	}
 }
