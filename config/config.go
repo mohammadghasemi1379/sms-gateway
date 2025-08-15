@@ -1,0 +1,119 @@
+package config
+
+import (
+	"fmt"
+	"os"
+	"strconv"
+	"strings"
+)
+
+type Config struct {
+	Redis    RedisConfig
+	App      AppConfig
+	Log      LogConfig
+	Database DatabaseConfig
+}
+
+type RedisConfig struct {
+	Host     string
+	Port     int
+	Password string
+	DB       int
+}
+
+type AppConfig struct {
+	Environment string
+	Port        int
+	Name        string
+	Version     string
+}
+
+type LogConfig struct {
+	Level  string
+	Format string
+}
+
+type DatabaseConfig struct {
+	User     string
+	Password string
+	Host     string
+	Port     int
+	DBName   string
+}
+
+func Load() *Config {
+	return &Config{
+		Redis:    loadRedisConfig(),
+		App:      loadAppConfig(),
+		Log:      loadLogConfig(),
+		Database: loadDatabaseConfig(),
+	}
+}
+
+func loadRedisConfig() RedisConfig {
+	return RedisConfig{
+		Host:     getEnv("REDIS_HOST", "localhost"),
+		Port:     getEnvAsInt("REDIS_PORT", 6379),
+		Password: getEnv("REDIS_PASSWORD", ""),
+		DB:       getEnvAsInt("REDIS_DB", 0),
+	}
+}
+
+func loadAppConfig() AppConfig {
+	return AppConfig{
+		Environment: getEnv("APP_ENV", "development"),
+		Port:        getEnvAsInt("APP_PORT", 8080),
+		Name:        getEnv("APP_NAME", "sms-gateway"),
+		Version:     getEnv("APP_VERSION", "1.0.0"),
+	}
+}
+
+func loadLogConfig() LogConfig {
+	return LogConfig{
+		Level:  getEnv("LOG_LEVEL", "info"),
+		Format: getEnv("LOG_FORMAT", "json"),
+	}
+}
+
+func loadDatabaseConfig() DatabaseConfig {
+	return DatabaseConfig{
+		Host:     getEnv("DB_HOST", "localhost"),
+		Port:     getEnvAsInt("DB_PORT", 3306),
+		User:     getEnv("DB_USER", "root"),
+		Password: getEnv("DB_PASSWORD", ""),
+		DBName:   getEnv("DB_NAME", "sms_gateway"),
+	}
+}
+
+func (r *RedisConfig) GetRedisAddr() string {
+	return fmt.Sprintf("%s:%d", r.Host, r.Port)
+}
+
+func (a *AppConfig) IsProduction() bool {
+	return strings.ToLower(a.Environment) == "production"
+}
+
+func getEnv(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
+}
+
+func getEnvAsInt(key string, defaultValue int) int {
+	if value := os.Getenv(key); value != "" {
+		if intValue, err := strconv.Atoi(value); err == nil {
+			return intValue
+		}
+	}
+	return defaultValue
+}
+
+func getEnvAsBool(key string, defaultValue bool) bool {
+	if value := os.Getenv(key); value != "" {
+		if boolValue, err := strconv.ParseBool(value); err == nil {
+			return boolValue
+		}
+	}
+	return defaultValue
+}
