@@ -7,9 +7,9 @@ import (
 	"syscall"
 	"time"
 
-	"mohammadghasemi1379/sms-gateway/config"
-	"mohammadghasemi1379/sms-gateway/connection"
-	"mohammadghasemi1379/sms-gateway/pkg/logger"
+	"github.com/mohammadghasemi1379/sms-gateway/config"
+	"github.com/mohammadghasemi1379/sms-gateway/connection"
+	"github.com/mohammadghasemi1379/sms-gateway/pkg/logger"
 )
 
 func main() {

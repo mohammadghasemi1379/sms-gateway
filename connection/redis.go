@@ -2,8 +2,9 @@ package connection
 
 import (
 	"context"
-	"mohammadghasemi1379/sms-gateway/config"
-	"mohammadghasemi1379/sms-gateway/pkg/logger"
+
+	"github.com/mohammadghasemi1379/sms-gateway/config"
+	"github.com/mohammadghasemi1379/sms-gateway/pkg/logger"
 
 	"github.com/redis/go-redis/v9"
 )

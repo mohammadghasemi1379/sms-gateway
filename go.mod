@@ -1,4 +1,4 @@
-module mohammadghasemi1379/sms-gateway
+module github.com/mohammadghasemi1379/sms-gateway
 
 go 1.24.6
 

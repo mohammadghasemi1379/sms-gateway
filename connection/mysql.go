@@ -4,12 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"time"
+
+	"github.com/mohammadghasemi1379/sms-gateway/config"
+	"github.com/mohammadghasemi1379/sms-gateway/pkg/logger"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	gormLogger "gorm.io/gorm/logger"
-	"mohammadghasemi1379/sms-gateway/config"
-	"mohammadghasemi1379/sms-gateway/pkg/logger"
-	"time"
 )
 
 func MysqlConnection(ctx context.Context, logger *logger.Logger, cfg *config.Config) (*gorm.DB, *sql.DB) {
