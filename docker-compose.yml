@@ -28,6 +28,17 @@ services:
     volumes:
       - redis_data:/data
 
+  # RabbitMQ
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: sms-gateway-rabbitmq
+    restart: always
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
   # SMS Provider Mock
   sms-provider-mock:
     build:
@@ -57,4 +68,4 @@ services:
 volumes:
   mysql_data:
   redis_data:
-
+  rabbitmq_data:

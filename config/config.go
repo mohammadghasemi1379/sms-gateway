@@ -13,6 +13,7 @@ type Config struct {
 	Log      LogConfig
 	Database DatabaseConfig
 	Mock     MockConfig
+	RabbitMQ RabbitMQConfig
 }
 
 type RedisConfig struct {
@@ -48,6 +49,20 @@ type MockConfig struct {
 	Port int
 }
 
+type RabbitMQConfig struct {
+	Host     string
+	Port     int
+	User     string
+	Password string
+	VHost    string
+}
+
+type ThrottleConfig struct {
+	MaxMessagesPerSecond int
+	QueueName           string
+	PriorityQueues      map[string]int // queue name -> weight percentage
+}
+
 func Load() *Config {
 	return &Config{
 		Redis:    loadRedisConfig(),
@@ -55,6 +70,7 @@ func Load() *Config {
 		Log:      loadLogConfig(),
 		Database: loadDatabaseConfig(),
 		Mock:     loadMockConfig(),
+		RabbitMQ: loadRabbitMQConfig(),
 	}
 }
 
@@ -98,6 +114,16 @@ func loadMockConfig() MockConfig {
 	return MockConfig{
 		Host: getEnv("MOCK_HOST", "localhost"),
 		Port: getEnvAsInt("MOCK_PORT", 8081),
+	}
+}
+
+func loadRabbitMQConfig() RabbitMQConfig {
+	return RabbitMQConfig{
+		Host:     getEnv("RABBITMQ_HOST", "localhost"),
+		Port:     getEnvAsInt("RABBITMQ_PORT", 5672),
+		User:     getEnv("RABBITMQ_USER", "guest"),
+		Password: getEnv("RABBITMQ_PASSWORD", "guest"),
+		VHost:    getEnv("RABBITMQ_VHOST", "/"),
 	}
 }
 
