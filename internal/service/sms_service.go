@@ -2,25 +2,38 @@ package service
 
 import (
 	"errors"
+
+	"github.com/mohammadghasemi1379/sms-gateway/connection"
 	"github.com/mohammadghasemi1379/sms-gateway/internal/entity"
 	"github.com/mohammadghasemi1379/sms-gateway/internal/port"
+	"github.com/mohammadghasemi1379/sms-gateway/pkg/logger"
+	"github.com/redis/go-redis/v9"
 )
 
 type smsService struct {
 	smsRepo         port.SMSRepository
 	userRepo        port.UserRepository
 	transactionRepo port.TransactionRepository
+	rabbitMQConnection *connection.RabbitMQConnection
+	redisClient *redis.Client
+	logger *logger.Logger
 }
 
 func NewSMSService(
 	smsRepo port.SMSRepository,
 	userRepo port.UserRepository,
 	transactionRepo port.TransactionRepository,
+	rabbitMQConnection *connection.RabbitMQConnection,
+	redisClient *redis.Client,
+	logger *logger.Logger,
 ) port.SMSService {
 	return &smsService{
 		smsRepo:         smsRepo,
 		userRepo:        userRepo,
 		transactionRepo: transactionRepo,
+		rabbitMQConnection: rabbitMQConnection,
+		redisClient: redisClient,
+		logger: logger,
 	}
 }
 

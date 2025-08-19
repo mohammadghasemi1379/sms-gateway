@@ -5,6 +5,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"github.com/joho/godotenv"
 )
 
 type Config struct {
@@ -64,6 +65,7 @@ type ThrottleConfig struct {
 }
 
 func Load() *Config {
+	godotenv.Load(".env")
 	return &Config{
 		Redis:    loadRedisConfig(),
 		App:      loadAppConfig(),

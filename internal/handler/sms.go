@@ -4,12 +4,17 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/mohammadghasemi1379/sms-gateway/internal/port"
 )
 
-type SMSHandler struct{}
+type SMSHandler struct{
+	smsService *port.SMSService
+}
 
-func NewSMSHandler() *SMSHandler {
-	return &SMSHandler{}
+func NewSMSHandler(smsService *port.SMSService) *SMSHandler {
+	return &SMSHandler{
+		smsService: smsService,
+	}
 }
 
 type SendSMSRequest struct {

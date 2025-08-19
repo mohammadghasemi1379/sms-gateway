@@ -11,8 +11,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/mohammadghasemi1379/sms-gateway/config"
-	// "github.com/mohammadghasemi1379/sms-gateway/connection"
+	"github.com/mohammadghasemi1379/sms-gateway/connection"
 	"github.com/mohammadghasemi1379/sms-gateway/internal/handler"
+	"github.com/mohammadghasemi1379/sms-gateway/internal/repository"
+	"github.com/mohammadghasemi1379/sms-gateway/internal/service"
 	"github.com/mohammadghasemi1379/sms-gateway/pkg/logger"
 )
 
@@ -31,16 +33,23 @@ func main() {
 		"start_time", time.Now(),
 	)
 
-	// _ = connection.RedisConnection(ctx, logger, *cfg)
-	// _ = connection.RedisPubSubConnection(ctx, logger, *cfg)
-	// _, _ = connection.MysqlConnection(ctx, logger, cfg)
+	redisConnection := connection.RedisConnection(ctx, logger, *cfg)
+	_ = connection.RedisPubSubConnection(ctx, logger, *cfg)
+	gorm, _ := connection.MysqlConnection(ctx, logger, cfg)
+	RabbitMQConnection := connection.NewRabbitMQConnection(cfg.RabbitMQ, logger, "sms-gateway", "sms-gateway", "sms-gateway")
+
+	smsRepository := repository.NewSMSRepository(gorm)
+	transactionRepository := repository.NewTransactionRepository(gorm)
+	userRepository := repository.NewUserRepository(gorm)
+	
+	smsService := service.NewSMSService(smsRepository, userRepository, transactionRepository, RabbitMQConnection, redisConnection, logger)
 
 	// Initialize Gin router
-	gin.SetMode(gin.ReleaseMode)
+	gin.SetMode(gin.DebugMode)
 	router := gin.Default()
 
 	// Initialize handlers
-	smsHandler := handler.NewSMSHandler()
+	smsHandler := handler.NewSMSHandler(&smsService)
 
 	// Setup routes
 	api := router.Group("/api")
@@ -61,7 +70,7 @@ func main() {
 	go func() {
 		logger.Info(ctx, "Starting HTTP server", "address", server.Addr)
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			logger.Error(ctx, "Failed to start server", "error", err)
+			logger.Error(ctx, "Failed to start server", "error", err.Error())
 		}
 	}()
 
@@ -78,7 +87,7 @@ func main() {
 	defer shutdownCancel()
 
 	if err := server.Shutdown(shutdownCtx); err != nil {
-		logger.Error(ctx, "Server forced to shutdown", "error", err)
+		logger.Error(ctx, "Server forced to shutdown", "error", err.Error())
 	} else {
 		logger.Info(ctx, "Server exited gracefully")
 	}

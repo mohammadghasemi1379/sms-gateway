@@ -29,7 +29,7 @@ func handler(c *gin.Context) {
 	defer mu.Unlock()
 
 	var req RequestBody
-	if err := c.ShouldBindJSON(&req); err != nil {
+	if err := c.ShouldBind(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -61,7 +61,7 @@ func main() {
 	cfg := config.Load()
 
 	// Initialize Gin router
-	gin.SetMode(gin.ReleaseMode)
+	gin.SetMode(gin.DebugMode)
 	router := gin.Default()
 
 	// Setup routes
@@ -80,7 +80,7 @@ func main() {
 	go func() {
 		logger.Info(ctx, "Starting HTTP server", "address", server.Addr)
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			logger.Error(ctx, "Failed to start server", "error", err)
+			logger.Error(ctx, "Failed to start server", "error", err.Error())
 		}
 	}()
 
@@ -97,7 +97,7 @@ func main() {
 	defer shutdownCancel()
 
 	if err := server.Shutdown(shutdownCtx); err != nil {
-		logger.Error(ctx, "Server forced to shutdown", "error", err)
+		logger.Error(ctx, "Server forced to shutdown", "error", err.Error())
 	} else {
 		logger.Info(ctx, "Server exited gracefully")
 	}

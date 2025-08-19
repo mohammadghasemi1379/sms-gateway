@@ -36,9 +36,9 @@ type SendResponse struct {
 func (p *ProviderMock) Send(ctx context.Context, sms *entity.SMS) (any, error) {
 	p.logger.Info(ctx, "Sending SMS", "sms", sms)
 
-	url := fmt.Sprintf("%s:%d/send", p.config.Mock.Host, p.config.Mock.Port)
+	url := fmt.Sprintf("%s:%d/mock/sms", p.config.Mock.Host, p.config.Mock.Port)
 
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest("POST", url, nil)
 	if err != nil {
 		return nil, err
 	}

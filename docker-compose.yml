@@ -42,8 +42,10 @@ services:
   # SMS Provider Mock
   sms-provider-mock:
     build:
-      context: ./cmd/sms_provider_mock
+      context: .
       dockerfile: deploy/dockerFile
+      args:
+        APP_NAME: sms_provider_mock
     container_name: sms-provider-mock
     restart: always
     env_file: .env
@@ -55,6 +57,8 @@ services:
     build:
       context: .
       dockerfile: deploy/dockerFile
+      args:
+        APP_NAME: sms-gateway
     container_name: sms-gateway-app
     restart: always
     env_file: .env
