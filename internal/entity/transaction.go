@@ -20,6 +20,7 @@ const (
 type Transaction struct {
 	ID        uint64                `json:"id"`
 	UserID    uint64                `json:"user_id"`
+	SMSID     *uint64               `json:"sms_id"` // Optional, for SMS-related transactions
 	Amount    float64               `json:"amount"`
 	Operation OperationEnum         `json:"operation"`
 	Status    TransactionStatusEnum `json:"status"`
