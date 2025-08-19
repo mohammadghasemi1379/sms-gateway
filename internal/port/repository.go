@@ -21,5 +21,6 @@ type UserRepository interface {
 	GetByID(id uint64) (*entity.User, error)
 	Create(user *entity.User) error
 	HasEnoughCredit(userID uint64, amount uint32) (bool, error)
-	UpdateCredit(userID uint64, amount uint32) error
+	IncreaseCredit(userID uint64, amount uint32) error
+	DecreaseCredit(userID uint64, amount uint32) error
 }

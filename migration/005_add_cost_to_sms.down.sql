@@ -1,0 +1,2 @@
+ALTER TABLE sms 
+DROP COLUMN cost;

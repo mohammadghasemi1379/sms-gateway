@@ -16,6 +16,7 @@ type SMS struct {
 	ReceiveNumber string        `json:"receive_number"`
 	Message       string        `json:"message"`
 	Status        SMSStatusEnum `json:"status"`
+	Cost          uint32        `json:"cost"`
 	CreatedAt     time.Time     `json:"created_at"`
 	UpdatedAt     time.Time     `json:"updated_at"`
 }

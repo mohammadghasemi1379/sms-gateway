@@ -3,8 +3,9 @@ package port
 import "github.com/mohammadghasemi1379/sms-gateway/internal/entity"
 
 type SMSService interface {
-	SendSMS(req *entity.SMS) error
+	SendSMS(sms *entity.SMS) error
 	GetUserHistory(userID uint64) ([]entity.SMS, error)
+	CalculateCost(sms *entity.SMS) *entity.SMS
 }
 
 type TransactionService interface {

@@ -38,6 +38,10 @@ func (r *userRepository) HasEnoughCredit(userID uint64, amount uint32) (bool, er
 	return user.Credit >= int64(amount), nil
 }
 
-func (r *userRepository) UpdateCredit(userID uint64, amount uint32) error {
+func (r *userRepository) IncreaseCredit(userID uint64, amount uint32) error {
+	return r.db.Model(&entity.User{}).Where("id = ?", userID).Update("credit", gorm.Expr("credit + ?", amount)).Error
+}
+
+func (r *userRepository) DecreaseCredit(userID uint64, amount uint32) error {
 	return r.db.Model(&entity.User{}).Where("id = ?", userID).Update("credit", gorm.Expr("credit - ?", amount)).Error
 }
