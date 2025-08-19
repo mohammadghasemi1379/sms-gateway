@@ -5,28 +5,26 @@ import (
 	"github.com/mohammadghasemi1379/sms-gateway/internal/port"
 )
 
-type smsService struct {
-	smsRepo         port.SMSRepository
+type userService struct {
 	userRepo        port.UserRepository
 	transactionRepo port.TransactionRepository
 }
 
-func NewSMSService(
-	smsRepo port.SMSRepository,
+func NewUserService(
 	userRepo port.UserRepository,
 	transactionRepo port.TransactionRepository,
-) port.SMSService {
-	return &smsService{
-		smsRepo:         smsRepo,
+) port.UserService {
+	return &userService{
 		userRepo:        userRepo,
 		transactionRepo: transactionRepo,
 	}
 }
 
-func (s *smsService) SendSMS(req *entity.SMS) error {
+func (s *userService) CreateUser(user *entity.User) error {
+
 	return nil
 }
 
-func (s *smsService) GetUserHistory(userID uint64) ([]entity.SMS, error) {
-	return nil, nil
+func (s *userService) UpdateCredit(userID uint64, amount uint32) error {
+	return nil
 }
