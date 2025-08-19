@@ -12,6 +12,7 @@ type Config struct {
 	App      AppConfig
 	Log      LogConfig
 	Database DatabaseConfig
+	Mock     MockConfig
 }
 
 type RedisConfig struct {
@@ -42,12 +43,18 @@ type DatabaseConfig struct {
 	DBName   string
 }
 
+type MockConfig struct {
+	Host string
+	Port int
+}
+
 func Load() *Config {
 	return &Config{
 		Redis:    loadRedisConfig(),
 		App:      loadAppConfig(),
 		Log:      loadLogConfig(),
 		Database: loadDatabaseConfig(),
+		Mock:     loadMockConfig(),
 	}
 }
 
@@ -84,6 +91,13 @@ func loadDatabaseConfig() DatabaseConfig {
 		User:     getEnv("DB_USER", "root"),
 		Password: getEnv("DB_PASSWORD", ""),
 		DBName:   getEnv("DB_NAME", "sms_gateway"),
+	}
+}
+
+func loadMockConfig() MockConfig {
+	return MockConfig{
+		Host: getEnv("MOCK_HOST", "localhost"),
+		Port: getEnvAsInt("MOCK_PORT", 8081),
 	}
 }
 

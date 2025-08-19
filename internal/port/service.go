@@ -1,6 +1,10 @@
 package port
 
-import "github.com/mohammadghasemi1379/sms-gateway/internal/entity"
+import (
+	"context"
+
+	"github.com/mohammadghasemi1379/sms-gateway/internal/entity"
+)
 
 type SMSService interface {
 	SendSMS(sms *entity.SMS) error
@@ -20,5 +24,5 @@ type UserService interface {
 }
 
 type SMSConsumer interface {
-	Consume(sms *entity.SMS) error
+	Consume(ctx context.Context, sms *entity.SMS) error
 }

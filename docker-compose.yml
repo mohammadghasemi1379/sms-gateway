@@ -28,6 +28,17 @@ services:
     volumes:
       - redis_data:/data
 
+  # SMS Provider Mock
+  sms-provider-mock:
+    build:
+      context: ./cmd/sms_provider_mock
+      dockerfile: deploy/dockerFile
+    container_name: sms-provider-mock
+    restart: always
+    env_file: .env
+    ports:
+      - "8081:8081"
+
   # SMS Gateway Application
   app:
     build:
@@ -41,6 +52,7 @@ services:
     depends_on:
       - mysql
       - redis
+      - sms-provider-mock
 
 volumes:
   mysql_data:
