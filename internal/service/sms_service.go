@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/mohammadghasemi1379/sms-gateway/connection"
 	"github.com/mohammadghasemi1379/sms-gateway/internal/entity"
@@ -11,13 +12,17 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+const (
+	QueueNameSMSMain = "sms-gateway"
+)
+
 type smsService struct {
-	smsRepo         port.SMSRepository
-	userRepo        port.UserRepository
-	transactionRepo port.TransactionRepository
+	smsRepo            port.SMSRepository
+	userRepo           port.UserRepository
+	transactionRepo    port.TransactionRepository
 	rabbitMQConnection *connection.RabbitMQConnection
-	redisClient *redis.Client
-	logger *logger.Logger
+	redisClient        *redis.Client
+	logger             *logger.Logger
 }
 
 func NewSMSService(
@@ -29,12 +34,12 @@ func NewSMSService(
 	logger *logger.Logger,
 ) port.SMSService {
 	return &smsService{
-		smsRepo:         smsRepo,
-		userRepo:        userRepo,
-		transactionRepo: transactionRepo,
+		smsRepo:            smsRepo,
+		userRepo:           userRepo,
+		transactionRepo:    transactionRepo,
 		rabbitMQConnection: rabbitMQConnection,
-		redisClient: redisClient,
-		logger: logger,
+		redisClient:        redisClient,
+		logger:             logger,
 	}
 }
 
@@ -58,11 +63,11 @@ func (s *smsService) SendSMS(ctx context.Context, sms *entity.SMS) error {
 	}
 
 	transaction := &entity.Transaction{
-		UserID: sms.UserID,
-		Amount: float64(sms.Cost),
-		Status: entity.TransactionPending,
+		UserID:    sms.UserID,
+		Amount:    float64(sms.Cost),
+		Status:    entity.TransactionPending,
 		Operation: entity.Decrease,
-		SMSID: &sms.ID,
+		SMSID:     &sms.ID,
 	}
 	err = s.transactionRepo.Create(ctx, transaction)
 	if err != nil {
@@ -82,6 +87,20 @@ func (s *smsService) SendSMS(ctx context.Context, sms *entity.SMS) error {
 		return err
 	}
 
+	msg := connection.RabbitMQMessage{
+		Queue:       QueueNameSMSMain,
+		ContentType: "text/plain",
+		Body: connection.RabbitMQMessageBody{
+			Data: fmt.Appendf(nil, "%d", sms.ID),
+			Type: "sms",
+		},
+	}
+	err = s.rabbitMQConnection.Publish(ctx, msg)
+	if err != nil {
+		s.logger.Error(ctx, "failed to publish sms to rabbitmq", "error", err)
+		return err
+	}
+
 	return nil
 }
 
@@ -93,4 +112,8 @@ func (s *smsService) CalculateCost(ctx context.Context, sms *entity.SMS) *entity
 	// follow the project rules all the sms cost is fixed amount
 	sms.Cost = 1000
 	return sms
+}
+
+func (s *smsService) GetSMSByID(ctx context.Context, smsID uint64) (*entity.SMS, error) {
+	return s.smsRepo.GetByID(ctx, smsID)
 }

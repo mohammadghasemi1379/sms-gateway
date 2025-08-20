@@ -18,7 +18,7 @@ import (
 var (
 	requests = 0
 	mu       sync.Mutex
-	limit    = 5
+	limit    = 100
 	reset    = time.Now().Add(time.Minute)
 )
 

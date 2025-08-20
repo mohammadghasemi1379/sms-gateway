@@ -28,15 +28,10 @@ func NewMockProvider(logger *logger.Logger, config *config.Config) port.Provider
 	}
 }
 
-type SendResponse struct {
-	Status  string `json:"status"`
-	Message string `json:"message"`
-}
-
-func (p *ProviderMock) Send(ctx context.Context, sms *entity.SMS) (any, error) {
+func (p *ProviderMock) Send(ctx context.Context, sms *entity.SMS) (*port.SendResponse, error) {
 	p.logger.Info(ctx, "Sending SMS", "sms", sms)
 
-	url := fmt.Sprintf("%s:%d/mock/sms", p.config.Mock.Host, p.config.Mock.Port)
+	url := fmt.Sprintf("http://%s:%d/mock/sms", p.config.Mock.Host, p.config.Mock.Port)
 
 	req, err := http.NewRequest("POST", url, nil)
 	if err != nil {
@@ -60,14 +55,14 @@ func (p *ProviderMock) Send(ctx context.Context, sms *entity.SMS) (any, error) {
 		return nil, err
 	}
 
-	var response SendResponse
+	var response port.SendResponse
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
 		p.logger.Error(ctx, "error in decode get credit", err)
 		return nil, err
 	}
 
-	return response, nil
+	return &response, nil
 }
 
 func (p *ProviderMock) DeliveryReport(ctx context.Context, sms *entity.SMS) (any, error) {

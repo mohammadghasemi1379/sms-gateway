@@ -2,10 +2,10 @@ package config
 
 import (
 	"fmt"
+	"github.com/joho/godotenv"
 	"os"
 	"strconv"
 	"strings"
-	"github.com/joho/godotenv"
 )
 
 type Config struct {
@@ -51,17 +51,18 @@ type MockConfig struct {
 }
 
 type RabbitMQConfig struct {
-	Host     string
-	Port     int
-	User     string
-	Password string
-	VHost    string
+	Host          string
+	Port          int
+	User          string
+	Password      string
+	VHost         string
+	PrefetchCount int
 }
 
 type ThrottleConfig struct {
 	MaxMessagesPerSecond int
-	QueueName           string
-	PriorityQueues      map[string]int // queue name -> weight percentage
+	QueueName            string
+	PriorityQueues       map[string]int // queue name -> weight percentage
 }
 
 func Load() *Config {
@@ -126,6 +127,7 @@ func loadRabbitMQConfig() RabbitMQConfig {
 		User:     getEnv("RABBITMQ_USER", "guest"),
 		Password: getEnv("RABBITMQ_PASSWORD", "guest"),
 		VHost:    getEnv("RABBITMQ_VHOST", "/"),
+		PrefetchCount: getEnvAsInt("RABBITMQ_PREFETCH_COUNT", 10),
 	}
 }
 

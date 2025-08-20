@@ -9,6 +9,7 @@ type SMSService interface {
 	SendSMS(ctx context.Context, sms *entity.SMS) error
 	GetUserHistory(ctx context.Context, userID uint64, page int, pageSize int) ([]entity.SMS, error)
 	CalculateCost(ctx context.Context, sms *entity.SMS) *entity.SMS
+	GetSMSByID(ctx context.Context, smsID uint64) (*entity.SMS, error)
 }
 
 type TransactionService interface {
@@ -23,5 +24,5 @@ type UserService interface {
 }
 
 type SMSConsumer interface {
-	Consume(ctx context.Context, sms *entity.SMS) error
+	Consume(ctx context.Context) error
 }

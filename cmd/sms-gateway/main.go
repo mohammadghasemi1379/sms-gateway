@@ -15,6 +15,7 @@ import (
 	"github.com/mohammadghasemi1379/sms-gateway/internal/handler"
 	"github.com/mohammadghasemi1379/sms-gateway/internal/migration"
 	"github.com/mohammadghasemi1379/sms-gateway/internal/repository"
+	"github.com/mohammadghasemi1379/sms-gateway/internal/repository/provider"
 	"github.com/mohammadghasemi1379/sms-gateway/internal/service"
 	"github.com/mohammadghasemi1379/sms-gateway/pkg/logger"
 )
@@ -37,7 +38,19 @@ func main() {
 	redisConnection := connection.RedisConnection(ctx, logger, *cfg)
 	_ = connection.RedisPubSubConnection(ctx, logger, *cfg)
 	gormDB, sqlDB := connection.MysqlConnection(ctx, logger, cfg)
+
 	RabbitMQConnection := connection.NewRabbitMQConnection(cfg.RabbitMQ, logger, "sms-gateway", "sms-gateway", "sms-gateway")
+	err := RabbitMQConnection.Connect()
+	if err != nil {
+		logger.Error(ctx, "Failed to connect to RabbitMQ", err)
+	}
+	RabbitMQConnection.ConnectionOpener()
+	defer func(rabbitmqConn *connection.RabbitMQConnection) {
+		err := rabbitmqConn.Close()
+		if err != nil {
+			logger.Error(ctx, "error on close RabbitMQ connection", err.Error())
+		}
+	}(RabbitMQConnection)
 
 	// Run database migrations
 	migrationRunner := migration.NewRunner(gormDB, sqlDB, logger)
@@ -51,6 +64,8 @@ func main() {
 
 	smsService := service.NewSMSService(smsRepository, userRepository, transactionRepository, RabbitMQConnection, redisConnection, logger)
 	userService := service.NewUserService(userRepository, transactionRepository)
+	transactionService := service.NewTransactionService(transactionRepository, userRepository, logger)
+	provider := provider.NewMockProvider(logger, cfg)
 
 	// Initialize Gin router
 	if cfg.App.IsProduction() {
@@ -93,6 +108,12 @@ func main() {
 		}
 	}()
 
+	smsConsumer := service.NewSMSConsumer(smsService, transactionService, userService, RabbitMQConnection, provider, logger, cfg.RabbitMQ.PrefetchCount)
+	go func() {
+		logger.Info(ctx, "Starting SMS consumer ...")
+		smsConsumer.Consume(ctx)
+	}()
+
 	// Wait for shutdown signal
 	<-ctx.Done()
 	logger.Info(
@@ -106,8 +127,8 @@ func main() {
 	defer shutdownCancel()
 
 	if err := server.Shutdown(shutdownCtx); err != nil {
-		logger.Error(ctx, "Server forced to shutdown", "error", err.Error())
+		logger.Error(shutdownCtx, "Server forced to shutdown", "error", err.Error())
 	} else {
-		logger.Info(ctx, "Server exited gracefully")
+		logger.Info(shutdownCtx, "Server exited gracefully")
 	}
 }
