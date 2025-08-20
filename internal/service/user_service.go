@@ -26,7 +26,6 @@ func NewUserService(
 func (s *userService) CreateUser(ctx context.Context, user *entity.User) (*entity.User, error) {
 	user, err := s.userRepo.Create(ctx, user)
 	if err != nil {
-		// Parse database error and return appropriate business error
 		return nil, errors.ParseDatabaseError(err)
 	}
 
@@ -41,7 +40,7 @@ func (s *userService) UpdateCredit(ctx context.Context, userID uint64, amount ui
 
 	err = s.userRepo.IncreaseCredit(ctx, user, amount)
 	if err != nil {
-		return nil, err
+		return nil, errors.ParseDatabaseError(err)
 	}
 
 	return user, nil
