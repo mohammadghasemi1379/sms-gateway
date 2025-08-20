@@ -5,15 +5,18 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/mohammadghasemi1379/sms-gateway/internal/entity"
 	"github.com/mohammadghasemi1379/sms-gateway/internal/port"
+	"github.com/mohammadghasemi1379/sms-gateway/pkg/logger"
 )
 
 type SMSHandler struct {
 	smsService port.SMSService
+	logger *logger.Logger
 }
 
-func NewSMSHandler(smsService port.SMSService) *SMSHandler {
+func NewSMSHandler(smsService port.SMSService, logger *logger.Logger) *SMSHandler {
 	return &SMSHandler{
 		smsService: smsService,
+		logger: logger,
 	}
 }
 
@@ -40,6 +43,7 @@ func (h *SMSHandler) Send(c *gin.Context) {
 
 	err := h.smsService.SendSMS(c, sms)
 	if err != nil {
+		h.logger.Error(c, "failed to send sms", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

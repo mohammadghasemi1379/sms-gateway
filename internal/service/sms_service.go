@@ -39,14 +39,22 @@ func NewSMSService(
 }
 
 func (s *smsService) SendSMS(ctx context.Context, sms *entity.SMS) error {
-	sms = s.CalculateCost(ctx, sms)	
+	sms = s.CalculateCost(ctx, sms)
+
 	hasEnoughCredit, err := s.userRepo.HasEnoughCredit(ctx, sms.UserID, sms.Cost)
 	if err != nil {
+		s.logger.Error(ctx, "failed to check if user has enough credit", "error", err)
 		return err
 	}
 
 	if !hasEnoughCredit {
 		return errors.New("user does not have enough credit")
+	}
+
+	err = s.smsRepo.Create(ctx, sms)
+	if err != nil {
+		s.logger.Error(ctx, "failed to create sms", "error", err)
+		return err
 	}
 
 	transaction := &entity.Transaction{
@@ -58,16 +66,19 @@ func (s *smsService) SendSMS(ctx context.Context, sms *entity.SMS) error {
 	}
 	err = s.transactionRepo.Create(ctx, transaction)
 	if err != nil {
+		s.logger.Error(ctx, "failed to create transaction", "error", err)
 		return err
 	}
 
 	user, err := s.userRepo.GetByID(ctx, sms.UserID)
 	if err != nil {
+		s.logger.Error(ctx, "failed to get user", "error", err)
 		return err
 	}
 
 	err = s.userRepo.DecreaseCredit(ctx, user, sms.Cost)
 	if err != nil {
+		s.logger.Error(ctx, "failed to decrease credit", "error", err)
 		return err
 	}
 

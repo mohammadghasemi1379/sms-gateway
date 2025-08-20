@@ -61,7 +61,7 @@ func main() {
 	router := gin.Default()
 
 	// Initialize handlers
-	smsHandler := handler.NewSMSHandler(smsService)
+	smsHandler := handler.NewSMSHandler(smsService, logger)
 	userHandler := handler.NewUserHandler(userService, logger)
 
 	// Setup routes
