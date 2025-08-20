@@ -1,7 +1,10 @@
 package service
 
 import (
+	"context"
+
 	"github.com/mohammadghasemi1379/sms-gateway/internal/entity"
+	"github.com/mohammadghasemi1379/sms-gateway/internal/errors"
 	"github.com/mohammadghasemi1379/sms-gateway/internal/port"
 )
 
@@ -20,11 +23,26 @@ func NewUserService(
 	}
 }
 
-func (s *userService) CreateUser(user *entity.User) error {
+func (s *userService) CreateUser(ctx context.Context, user *entity.User) (*entity.User, error) {
+	user, err := s.userRepo.Create(ctx, user)
+	if err != nil {
+		// Parse database error and return appropriate business error
+		return nil, errors.ParseDatabaseError(err)
+	}
 
-	return nil
+	return user, nil
 }
 
-func (s *userService) UpdateCredit(userID uint64, amount uint32) error {
-	return nil
+func (s *userService) UpdateCredit(ctx context.Context, userID uint64, amount uint32) (*entity.User, error) {
+	user, err := s.userRepo.GetByID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.userRepo.IncreaseCredit(ctx, user, amount)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }

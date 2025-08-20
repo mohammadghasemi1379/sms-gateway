@@ -19,9 +19,9 @@ func NewSMSHandler(smsService port.SMSService) *SMSHandler {
 
 
 type SendSMSRequest struct {
-	ReceiveNumber string `json:"phone_number"`
-	Message       string `json:"message"`
-	UserID        uint64 `json:"user_id"`
+	ReceiveNumber string `json:"phone_number" binding:"required"`
+	Message       string `json:"message" binding:"required"`
+	UserID        uint64 `json:"user_id" binding:"required"`
 }
 
 func (h *SMSHandler) Send(c *gin.Context) {
@@ -38,7 +38,7 @@ func (h *SMSHandler) Send(c *gin.Context) {
 		Status:        entity.SMSStatusPending,
 	}
 
-	err := h.smsService.SendSMS(sms)
+	err := h.smsService.SendSMS(c, sms)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -61,7 +61,7 @@ func (h *SMSHandler) GetHistory(c *gin.Context) {
 		return
 	}
 
-	history, err := h.smsService.GetUserHistory(req.UserID)
+	history, err := h.smsService.GetUserHistory(c, req.UserID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

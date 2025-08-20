@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 
 	"github.com/mohammadghasemi1379/sms-gateway/connection"
@@ -37,9 +38,9 @@ func NewSMSService(
 	}
 }
 
-func (s *smsService) SendSMS(sms *entity.SMS) error {
-	sms = s.CalculateCost(sms)	
-	hasEnoughCredit, err := s.userRepo.HasEnoughCredit(sms.UserID, sms.Cost)
+func (s *smsService) SendSMS(ctx context.Context, sms *entity.SMS) error {
+	sms = s.CalculateCost(ctx, sms)	
+	hasEnoughCredit, err := s.userRepo.HasEnoughCredit(ctx, sms.UserID, sms.Cost)
 	if err != nil {
 		return err
 	}
@@ -55,12 +56,17 @@ func (s *smsService) SendSMS(sms *entity.SMS) error {
 		Operation: entity.Decrease,
 		SMSID: &sms.ID,
 	}
-	err = s.transactionRepo.Create(transaction)
+	err = s.transactionRepo.Create(ctx, transaction)
 	if err != nil {
 		return err
 	}
 
-	err = s.userRepo.DecreaseCredit(sms.UserID, sms.Cost)
+	user, err := s.userRepo.GetByID(ctx, sms.UserID)
+	if err != nil {
+		return err
+	}
+
+	err = s.userRepo.DecreaseCredit(ctx, user, sms.Cost)
 	if err != nil {
 		return err
 	}
@@ -68,11 +74,11 @@ func (s *smsService) SendSMS(sms *entity.SMS) error {
 	return nil
 }
 
-func (s *smsService) GetUserHistory(userID uint64) ([]entity.SMS, error) {
-	return s.smsRepo.UserHistory(userID)
+func (s *smsService) GetUserHistory(ctx context.Context, userID uint64) ([]entity.SMS, error) {
+	return s.smsRepo.UserHistory(ctx, userID)
 }
 
-func (s *smsService) CalculateCost(sms *entity.SMS) *entity.SMS {
+func (s *smsService) CalculateCost(ctx context.Context, sms *entity.SMS) *entity.SMS {
 	// follow the project rules all the sms cost is fixed amount
 	sms.Cost = 1000
 	return sms

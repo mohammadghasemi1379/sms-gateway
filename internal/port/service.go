@@ -6,9 +6,9 @@ import (
 )
 
 type SMSService interface {
-	SendSMS(sms *entity.SMS) error
-	GetUserHistory(userID uint64) ([]entity.SMS, error)
-	CalculateCost(sms *entity.SMS) *entity.SMS
+	SendSMS(ctx context.Context, sms *entity.SMS) error
+	GetUserHistory(ctx context.Context, userID uint64) ([]entity.SMS, error)
+	CalculateCost(ctx context.Context, sms *entity.SMS) *entity.SMS
 }
 
 type TransactionService interface {
@@ -18,8 +18,8 @@ type TransactionService interface {
 }
 
 type UserService interface {
-	CreateUser(user *entity.User) error
-	UpdateCredit(userID uint64, amount uint32) error
+	CreateUser(ctx context.Context, user *entity.User) (*entity.User, error)
+	UpdateCredit(ctx context.Context, userID uint64, amount uint32) (*entity.User, error)
 }
 
 type SMSConsumer interface {

@@ -16,7 +16,7 @@ func New() *Logger {
 		AddSource: true,
 	}
 
-	handler := slog.NewJSONHandler(os.Stdout, opts)
+	handler := slog.NewTextHandler(os.Stdout, opts)
 	logger := slog.New(handler)
 
 	return &Logger{Logger: logger}

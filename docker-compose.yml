@@ -7,10 +7,10 @@ services:
     container_name: sms-gateway-mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: sms_gateway
-      MYSQL_USER: smsuser
-      MYSQL_PASSWORD: smspassword
+      MYSQL_USER: sms_gateway
+      MYSQL_PASSWORD: secret
     ports:
       - "3306:3306"
     volumes:

@@ -13,6 +13,7 @@ import (
 	"github.com/mohammadghasemi1379/sms-gateway/config"
 	"github.com/mohammadghasemi1379/sms-gateway/connection"
 	"github.com/mohammadghasemi1379/sms-gateway/internal/handler"
+	"github.com/mohammadghasemi1379/sms-gateway/internal/migration"
 	"github.com/mohammadghasemi1379/sms-gateway/internal/repository"
 	"github.com/mohammadghasemi1379/sms-gateway/internal/service"
 	"github.com/mohammadghasemi1379/sms-gateway/pkg/logger"
@@ -35,14 +36,21 @@ func main() {
 
 	redisConnection := connection.RedisConnection(ctx, logger, *cfg)
 	_ = connection.RedisPubSubConnection(ctx, logger, *cfg)
-	gorm, _ := connection.MysqlConnection(ctx, logger, cfg)
+	gormDB, sqlDB := connection.MysqlConnection(ctx, logger, cfg)
 	RabbitMQConnection := connection.NewRabbitMQConnection(cfg.RabbitMQ, logger, "sms-gateway", "sms-gateway", "sms-gateway")
 
-	smsRepository := repository.NewSMSRepository(gorm)
-	transactionRepository := repository.NewTransactionRepository(gorm)
-	userRepository := repository.NewUserRepository(gorm)
-	
+	// Run database migrations
+	migrationRunner := migration.NewRunner(gormDB, sqlDB, logger)
+	if err := migrationRunner.RunMigrations(ctx, "migration"); err != nil {
+		logger.Panic(ctx, "Failed to run database migrations", err)
+	}
+
+	smsRepository := repository.NewSMSRepository(gormDB, logger)
+	transactionRepository := repository.NewTransactionRepository(gormDB, logger)
+	userRepository := repository.NewUserRepository(gormDB, logger)
+
 	smsService := service.NewSMSService(smsRepository, userRepository, transactionRepository, RabbitMQConnection, redisConnection, logger)
+	userService := service.NewUserService(userRepository, transactionRepository)
 
 	// Initialize Gin router
 	if cfg.App.IsProduction() {
@@ -54,10 +62,16 @@ func main() {
 
 	// Initialize handlers
 	smsHandler := handler.NewSMSHandler(smsService)
+	userHandler := handler.NewUserHandler(userService, logger)
 
 	// Setup routes
 	api := router.Group("/api")
 	{
+		user := api.Group("/user")
+		{
+			user.POST("/create", userHandler.CreateUser)
+			user.POST("/update-credit", userHandler.UpdateCredit)
+		}
 		sms := api.Group("/sms")
 		{
 			sms.POST("/send", smsHandler.Send)
