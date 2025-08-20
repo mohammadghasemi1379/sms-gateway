@@ -45,11 +45,15 @@ func main() {
 	smsService := service.NewSMSService(smsRepository, userRepository, transactionRepository, RabbitMQConnection, redisConnection, logger)
 
 	// Initialize Gin router
-	gin.SetMode(gin.DebugMode)
+	if cfg.App.IsProduction() {
+		gin.SetMode(gin.ReleaseMode)
+	} else {
+		gin.SetMode(gin.DebugMode)
+	}
 	router := gin.Default()
 
 	// Initialize handlers
-	smsHandler := handler.NewSMSHandler(&smsService)
+	smsHandler := handler.NewSMSHandler(smsService)
 
 	// Setup routes
 	api := router.Group("/api")
@@ -57,6 +61,7 @@ func main() {
 		sms := api.Group("/sms")
 		{
 			sms.POST("/send", smsHandler.Send)
+			sms.GET("/history", smsHandler.GetHistory)
 		}
 	}
 
