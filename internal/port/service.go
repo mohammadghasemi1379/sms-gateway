@@ -7,7 +7,7 @@ import (
 
 type SMSService interface {
 	SendSMS(ctx context.Context, sms *entity.SMS) error
-	GetUserHistory(ctx context.Context, userID uint64) ([]entity.SMS, error)
+	GetUserHistory(ctx context.Context, userID uint64, page int, pageSize int) ([]entity.SMS, error)
 	CalculateCost(ctx context.Context, sms *entity.SMS) *entity.SMS
 }
 

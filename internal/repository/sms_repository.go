@@ -48,9 +48,9 @@ func (r *smsRepository) Update(ctx context.Context, sms *entity.SMS) error {
 	return nil
 }
 
-func (r *smsRepository) UserHistory(ctx context.Context, userID uint64) ([]entity.SMS, error) {
+func (r *smsRepository) UserHistory(ctx context.Context, userID uint64, limit int, offset int) ([]entity.SMS, error) {
 	var smsList []entity.SMS
-	err := r.db.WithContext(ctx).Where("user_id = ?", userID).Order("created_at DESC").Find(&smsList).Error
+	err := r.db.WithContext(ctx).Where("user_id = ?", userID).Order("created_at DESC").Limit(limit).Offset(offset).Find(&smsList).Error
 	if err != nil {
 		r.logger.Error(ctx, "Failed to get user history", "error", err.Error())
 		return nil, err

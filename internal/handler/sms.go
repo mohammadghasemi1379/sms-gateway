@@ -55,7 +55,9 @@ func (h *SMSHandler) Send(c *gin.Context) {
 
 
 type SMSHistoryRequest struct {
-	UserID uint64 `json:"user_id"`
+	UserID uint64 `json:"user_id" binding:"required"`
+	Page int `json:"page"`
+	PageSize int `json:"page_size"`
 }
 
 func (h *SMSHandler) GetHistory(c *gin.Context) {
@@ -65,7 +67,15 @@ func (h *SMSHandler) GetHistory(c *gin.Context) {
 		return
 	}
 
-	history, err := h.smsService.GetUserHistory(c, req.UserID)
+	if req.Page <= 0 {
+		req.Page = 1
+	}
+
+	if req.PageSize <= 0 {
+		req.PageSize = 20
+	}
+
+	history, err := h.smsService.GetUserHistory(c, req.UserID, req.Page, req.PageSize)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

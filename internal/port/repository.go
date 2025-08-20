@@ -10,7 +10,7 @@ type SMSRepository interface {
 	Create(ctx context.Context, sms *entity.SMS) error
 	GetByID(ctx context.Context, id uint64) (*entity.SMS, error)
 	Update(ctx context.Context, sms *entity.SMS) error
-	UserHistory(ctx context.Context, userID uint64) ([]entity.SMS, error)
+	UserHistory(ctx context.Context, userID uint64, limit int, offset int) ([]entity.SMS, error)
 }
 
 type TransactionRepository interface {

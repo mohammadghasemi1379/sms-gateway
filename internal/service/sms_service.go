@@ -85,8 +85,8 @@ func (s *smsService) SendSMS(ctx context.Context, sms *entity.SMS) error {
 	return nil
 }
 
-func (s *smsService) GetUserHistory(ctx context.Context, userID uint64) ([]entity.SMS, error) {
-	return s.smsRepo.UserHistory(ctx, userID)
+func (s *smsService) GetUserHistory(ctx context.Context, userID uint64, page int, pageSize int) ([]entity.SMS, error) {
+	return s.smsRepo.UserHistory(ctx, userID, pageSize, (page-1)*pageSize)
 }
 
 func (s *smsService) CalculateCost(ctx context.Context, sms *entity.SMS) *entity.SMS {
