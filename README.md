@@ -1,18 +1,6 @@
-# SMS Gateway
+# 📱 SMS Gateway
 
-A robust, scalable SMS gateway service built with Go, featuring message queuing, transaction management, and multi-provider support.
-
-## 🚀 Features
-
-- **RESTful API** for SMS sending and management
-- **Message Queuing** with RabbitMQ for reliable message delivery
-- **Multi-Provider Support** with mock provider implementation
-- **Credit-based System** for user balance management
-- **Transaction Tracking** for all SMS operations
-- **Database Migrations** for schema management
-- **Docker Support** for easy deployment
-- **Graceful Shutdown** handling
-- **Structured Logging** with configurable levels
+A robust, scalable SMS gateway service built with Go, featuring intelligent message queuing, transaction management, and multi-provider support.
 
 ## 🏗️ Architecture
 
@@ -74,12 +62,18 @@ go mod download
 go run cmd/sms-gateway/main.go
 ```
 
-## 📚 API Documentation
+## 📚 Documentation
 
-### Base URL
-```
-http://localhost:8080/api
-```
+### 📖 Comprehensive Guides
+- **[🧠 Queue Management System](./Docs/README.md)** - Detailed explanation of our intelligent multi-queue architecture with Mermaid diagrams
+- **[📡 API Collection](./Docs/sms-gateway.postman_collection.json)** - Complete Postman collection for testing all endpoints
+
+### 🔗 Quick Links
+- **Base URL**: `http://localhost:8080/api`
+- **RabbitMQ Management**: `http://localhost:15672` (guest/guest)
+- **Mock Provider**: `http://localhost:8081`
+
+### API Reference
 
 ### Endpoints
 
@@ -155,28 +149,35 @@ GET /api/sms/history?user_id=1&limit=10&offset=0
 
 ## 🔄 Message Queue System
 
-The application uses RabbitMQ with multiple queues for message processing:
+The application uses RabbitMQ with an intelligent multi-queue architecture for optimal message processing:
 
-- **Primary Queue**: High-priority messages (90% weight)
-- **Secondary Queue**: Standard messages (10% weight)
-- **Dead Letter Queue**: Failed messages for retry logic
+- **Main Queue** (`sms-gateway`): Primary processing under normal load
+- **Primary Overflow** (`sms-gateway-primary`): 90% of overflow traffic  
+- **Secondary Overflow** (`sms-gateway-secondary`): 10% of overflow traffic
 
 ### Queue Strategy
-- Messages are distributed based on configured weights
-- Consumers process messages with prefetch limits
-- Failed messages are handled with retry mechanisms
+- **Intelligent Load Balancing**: Automatic overflow detection and routing
+- **Weighted Distribution**: Configurable traffic distribution across queues
+- **Concurrent Consumers**: Dedicated consumers for each queue
+- **Adaptive Processing**: Dynamic queue selection based on real-time load
 
-## 🧪 Testing
+> 📖 **For detailed architecture and flow diagrams**, see our [Queue Management Documentation](./Docs/README.md)
 
-The project includes a mock SMS provider for testing purposes:
+### 📡 API Testing with Postman
 
-```bash
-# Start mock provider
-docker-compose up sms-provider-mock
+Import our complete API collection to test all endpoints:
 
-# The mock provider runs on port 8081
-curl http://localhost:8081/health
-```
+1. **Download**: [Postman Collection](./Docs/sms-gateway.postman_collection.json)
+2. **Import** into Postman
+3. **Configure** environment variables:
+   - `baseURL`: `http://localhost:8080`
+
+The collection includes:
+- ✅ User management endpoints
+- ✅ SMS sending and history
+- ✅ Credit management
+- ✅ Health checks
+- ✅ Pre-configured test data
 
 ## 📦 Make Commands
 
@@ -207,25 +208,6 @@ The docker-compose setup includes:
 ## 📈 Monitoring
 
 - RabbitMQ management interface at http://localhost:15672
-
-## 🔧 Troubleshooting
-
-### Common Issues
-
-**Database Connection Failed**
-- Verify MySQL is running and accessible
-- Check database credentials in `.env`
-- Ensure database `sms_gateway` exists
-
-**RabbitMQ Connection Failed**
-- Verify RabbitMQ service is running
-- Check RabbitMQ credentials and host configuration
-- Ensure RabbitMQ management plugin is enabled
-
-**Port Already in Use**
-- Check if services are already running
-- Modify port configurations in docker-compose.yml
-- Use `docker ps` to see running containers
 
 ### Logs
 

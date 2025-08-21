@@ -1,0 +1,133 @@
+{
+	"info": {
+		"_postman_id": "11854a43-a963-4e9b-8369-8f9cf358bf68",
+		"name": "sms-gateway",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "40299520",
+		"_collection_link": "https://planetary-desert-861558.postman.co/workspace/M.Ghasemi~fed78d6a-dd28-40bf-a7b2-d63700b87792/collection/40299520-11854a43-a963-4e9b-8369-8f9cf358bf68?action=share&source=collection_link&creator=40299520"
+	},
+	"item": [
+		{
+			"name": "SMS",
+			"item": [
+				{
+					"name": "send sms",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"phone_number\": \"09123456789\",\n    \"message\": \"test message\",\n    \"user_id\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{baseURL}}/api/sms/send"
+					},
+					"response": []
+				},
+				{
+					"name": "user sms history",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"user_id\": 1,\n    \"page\": 1,\n    \"page_size\": 20\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{baseURL}}/api/sms/history"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "create user",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"mohammad\",\n    \"phone_number\": \"09195007513\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{baseURL}}/api/user/create"
+					},
+					"response": []
+				},
+				{
+					"name": "incress credit",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"user_id\": 1,\n    \"amount\": 100000000\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{baseURL}}/api/user/update-credit"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "mock",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": "localhost:8082/mock/sms"
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseURL",
+			"value": ""
+		}
+	]
+}
