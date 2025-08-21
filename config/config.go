@@ -51,12 +51,14 @@ type MockConfig struct {
 }
 
 type RabbitMQConfig struct {
-	Host          string
-	Port          int
-	User          string
-	Password      string
-	VHost         string
-	PrefetchCount int
+	Host            string
+	Port            int
+	User            string
+	Password        string
+	VHost           string
+	PrefetchCount   int
+	PrimaryWeight   int
+	SecondaryWeight int
 }
 
 type ThrottleConfig struct {
@@ -122,12 +124,14 @@ func loadMockConfig() MockConfig {
 
 func loadRabbitMQConfig() RabbitMQConfig {
 	return RabbitMQConfig{
-		Host:     getEnv("RABBITMQ_HOST", "localhost"),
-		Port:     getEnvAsInt("RABBITMQ_PORT", 5672),
-		User:     getEnv("RABBITMQ_USER", "guest"),
-		Password: getEnv("RABBITMQ_PASSWORD", "guest"),
-		VHost:    getEnv("RABBITMQ_VHOST", "/"),
-		PrefetchCount: getEnvAsInt("RABBITMQ_PREFETCH_COUNT", 10),
+		Host:            getEnv("RABBITMQ_HOST", "localhost"),
+		Port:            getEnvAsInt("RABBITMQ_PORT", 5672),
+		User:            getEnv("RABBITMQ_USER", "guest"),
+		Password:        getEnv("RABBITMQ_PASSWORD", "guest"),
+		VHost:           getEnv("RABBITMQ_VHOST", "/"),
+		PrefetchCount:   getEnvAsInt("RABBITMQ_PREFETCH_COUNT", 10),
+		PrimaryWeight:   getEnvAsInt("RABBITMQ_PRIMARY_WEIGHT", 90),
+		SecondaryWeight: getEnvAsInt("RABBITMQ_SECONDARY_WEIGHT", 10),
 	}
 }
 

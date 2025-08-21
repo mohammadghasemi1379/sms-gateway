@@ -8,7 +8,6 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
-
 	"github.com/gin-gonic/gin"
 	"github.com/mohammadghasemi1379/sms-gateway/config"
 	"github.com/mohammadghasemi1379/sms-gateway/connection"
@@ -35,8 +34,6 @@ func main() {
 		"start_time", time.Now(),
 	)
 
-	redisConnection := connection.RedisConnection(ctx, logger, *cfg)
-	_ = connection.RedisPubSubConnection(ctx, logger, *cfg)
 	gormDB, sqlDB := connection.MysqlConnection(ctx, logger, cfg)
 
 	RabbitMQConnection := connection.NewRabbitMQConnection(cfg.RabbitMQ, logger, "sms-gateway", "sms-gateway", "sms-gateway")
@@ -52,17 +49,24 @@ func main() {
 		}
 	}(RabbitMQConnection)
 
+	queueStrategy := service.NewQueueDistributionStrategy(logger, RabbitMQConnection, cfg.RabbitMQ.PrefetchCount, cfg.RabbitMQ)
+	if err := RabbitMQConnection.DeclareMultipleQueues(queueStrategy.GetQueueNames()); err != nil {
+		logger.Panic(ctx, "Failed to declare queues", err)
+	}
+
 	// Run database migrations
 	migrationRunner := migration.NewRunner(gormDB, sqlDB, logger)
 	if err := migrationRunner.RunMigrations(ctx, "migration"); err != nil {
 		logger.Panic(ctx, "Failed to run database migrations", err)
 	}
 
+	// Initialize repositories
 	smsRepository := repository.NewSMSRepository(gormDB, logger)
 	transactionRepository := repository.NewTransactionRepository(gormDB, logger)
 	userRepository := repository.NewUserRepository(gormDB, logger)
 
-	smsService := service.NewSMSService(smsRepository, userRepository, transactionRepository, RabbitMQConnection, redisConnection, logger)
+	// Initialize services
+	smsService := service.NewSMSService(smsRepository, userRepository, transactionRepository, RabbitMQConnection, logger, queueStrategy)
 	userService := service.NewUserService(userRepository, transactionRepository)
 	transactionService := service.NewTransactionService(transactionRepository, userRepository, logger)
 	provider := provider.NewMockProvider(logger, cfg)
@@ -108,11 +112,14 @@ func main() {
 		}
 	}()
 
-	smsConsumer := service.NewSMSConsumer(smsService, transactionService, userService, RabbitMQConnection, provider, logger, cfg.RabbitMQ.PrefetchCount)
-	go func() {
-		logger.Info(ctx, "Starting SMS consumer ...")
-		smsConsumer.Consume(ctx)
-	}()
+	// Start multi-queue consumer
+	multiQueueConsumer := service.NewMultiQueueConsumer(smsService, transactionService, userService, RabbitMQConnection, provider, logger, cfg.RabbitMQ.PrefetchCount, cfg.RabbitMQ)
+    go func() {
+        logger.Info(ctx, "Starting multi-queue SMS consumer...")
+        if err := multiQueueConsumer.ConsumeAllQueues(ctx); err != nil {
+            logger.Error(ctx, "Failed to start multi-queue consumer", "error", err.Error())
+        }
+    }()
 
 	// Wait for shutdown signal
 	<-ctx.Done()

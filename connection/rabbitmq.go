@@ -340,3 +340,34 @@ func (c *RabbitMQConnection) Close() error {
 	}
 	return nil
 }
+
+
+func (c *RabbitMQConnection) GetQueueMessageCount() (int, error) {
+	if c.channel == nil {
+		return 0, errors.New("channel is not initialized")
+	}
+
+	queue, err := c.channel.QueueInspect(c.queue)
+	if err != nil {
+		return 0, fmt.Errorf("failed to inspect queue: %w", err)
+	}
+
+	return queue.Messages, nil
+}
+
+func (c *RabbitMQConnection) DeclareMultipleQueues(queueNames []string) error {
+	for _, queueName := range queueNames {
+		if _, err := c.channel.QueueDeclare(queueName, true, false, false, false, nil); err != nil {
+			c.logger.Error(context.TODO(), "error in declaring queue", "queue", queueName, "error", err.Error())
+			return err
+		}
+
+		if err := c.channel.QueueBind(queueName, "", c.exchange, false, nil); err != nil {
+			c.logger.Error(context.TODO(), "error in binding queue", "queue", queueName, "error", err.Error())
+			return err
+		}
+
+		c.logger.Info(context.TODO(), "Queue declared and bound", "queue", queueName)
+	}
+	return nil
+}

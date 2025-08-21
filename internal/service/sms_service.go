@@ -9,11 +9,6 @@ import (
 	"github.com/mohammadghasemi1379/sms-gateway/internal/entity"
 	"github.com/mohammadghasemi1379/sms-gateway/internal/port"
 	"github.com/mohammadghasemi1379/sms-gateway/pkg/logger"
-	"github.com/redis/go-redis/v9"
-)
-
-const (
-	QueueNameSMSMain = "sms-gateway"
 )
 
 type smsService struct {
@@ -21,8 +16,8 @@ type smsService struct {
 	userRepo           port.UserRepository
 	transactionRepo    port.TransactionRepository
 	rabbitMQConnection *connection.RabbitMQConnection
-	redisClient        *redis.Client
 	logger             *logger.Logger
+	queueStrategy      *QueueDistributionStrategy
 }
 
 func NewSMSService(
@@ -30,16 +25,16 @@ func NewSMSService(
 	userRepo port.UserRepository,
 	transactionRepo port.TransactionRepository,
 	rabbitMQConnection *connection.RabbitMQConnection,
-	redisClient *redis.Client,
 	logger *logger.Logger,
+	queueStrategy *QueueDistributionStrategy,
 ) port.SMSService {
 	return &smsService{
 		smsRepo:            smsRepo,
 		userRepo:           userRepo,
 		transactionRepo:    transactionRepo,
 		rabbitMQConnection: rabbitMQConnection,
-		redisClient:        redisClient,
 		logger:             logger,
+		queueStrategy:      queueStrategy,
 	}
 }
 
@@ -87,19 +82,14 @@ func (s *smsService) SendSMS(ctx context.Context, sms *entity.SMS) error {
 		return err
 	}
 
-	msg := connection.RabbitMQMessage{
-		Queue:       QueueNameSMSMain,
-		ContentType: "text/plain",
-		Body: connection.RabbitMQMessageBody{
-			Data: fmt.Appendf(nil, "%d", sms.ID),
-			Type: "sms",
-		},
-	}
-	err = s.rabbitMQConnection.Publish(ctx, msg)
-	if err != nil {
-		s.logger.Error(ctx, "failed to publish sms to rabbitmq", "error", err)
-		return err
-	}
+    err = s.queueStrategy.PublishToQueue(ctx, connection.RabbitMQMessageBody{
+		Data: fmt.Appendf(nil, "%d", sms.ID),
+		Type: "sms",
+	})
+    if err != nil {
+        s.logger.Error(ctx, "failed to publish sms to queue", "error", err)
+        return err
+    }
 
 	return nil
 }
@@ -116,4 +106,8 @@ func (s *smsService) CalculateCost(ctx context.Context, sms *entity.SMS) *entity
 
 func (s *smsService) GetSMSByID(ctx context.Context, smsID uint64) (*entity.SMS, error) {
 	return s.smsRepo.GetByID(ctx, smsID)
+}
+
+func (s *smsService) UpdateSMSStatus(ctx context.Context, smsID uint64, status entity.SMSStatusEnum) error {
+	return s.smsRepo.UpdateStatus(ctx, smsID, status)
 }

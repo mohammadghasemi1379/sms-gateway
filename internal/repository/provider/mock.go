@@ -46,19 +46,14 @@ func (p *ProviderMock) Send(ctx context.Context, sms *entity.SMS) (*port.SendRes
 	defer func(Body io.ReadCloser) {
 		BodyErr := Body.Close()
 		if BodyErr != nil {
-			p.logger.Panic(ctx, "error in closing response body", err)
+			p.logger.Panic(ctx, "error in closing response body", err.Error())
 		}
 	}(res.Body)
-
-	if res.StatusCode != http.StatusOK {
-		p.logger.Error(ctx, "error in sending sms", err)
-		return nil, err
-	}
 
 	var response port.SendResponse
 	err = json.NewDecoder(res.Body).Decode(&response)
 	if err != nil {
-		p.logger.Error(ctx, "error in decode get credit", err)
+		p.logger.Error(ctx, "error in decode get credit", err.Error())
 		return nil, err
 	}
 

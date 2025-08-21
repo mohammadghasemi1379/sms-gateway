@@ -57,3 +57,12 @@ func (r *smsRepository) UserHistory(ctx context.Context, userID uint64, limit in
 	}
 	return smsList, err
 }
+
+func (r *smsRepository) UpdateStatus(ctx context.Context, smsID uint64, status entity.SMSStatusEnum) error {
+	err := r.db.WithContext(ctx).Model(&entity.SMS{}).Where("id = ?", smsID).Update("status", status).Error
+	if err != nil {
+		r.logger.Error(ctx, "Failed to update sms status", "error", err.Error())
+		return err
+	}
+	return nil
+}
