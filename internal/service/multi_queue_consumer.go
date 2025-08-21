@@ -141,6 +141,7 @@ func (c *MultiQueueConsumer) processMessageLogic(ctx context.Context, smsID uint
 
 	if response.Status == "ok" && response.Message == "sended" {
 		c.smsService.UpdateSMSStatus(ctx, smsID, entity.SMSStatusSent)
+		c.transactionService.UpdateTransactionStatus(ctx, smsID, entity.TransactionSuccess)
 		return nil
 	}
 

@@ -16,9 +16,7 @@ type SMSService interface {
 }
 
 type TransactionService interface {
-	CreateTransaction(transaction *entity.Transaction) error
-	GetTransactionBySMSID(smsID uint64) (*entity.Transaction, error)
-	UpdateTransactionStatus(smsID uint64, status entity.TransactionStatusEnum) error
+	UpdateTransactionStatus(ctx context.Context, smsID uint64, status entity.TransactionStatusEnum) error
 }
 
 type UserService interface {

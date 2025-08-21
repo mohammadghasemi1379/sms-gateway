@@ -1,6 +1,8 @@
 package service
 
 import (
+	"context"
+
 	"github.com/mohammadghasemi1379/sms-gateway/internal/entity"
 	"github.com/mohammadghasemi1379/sms-gateway/internal/port"
 	"github.com/mohammadghasemi1379/sms-gateway/pkg/logger"
@@ -24,14 +26,7 @@ func NewTransactionService(
 	}
 }
 
-func (s *transactionService) CreateTransaction(transaction *entity.Transaction) error {
-	return nil
-}
 
-func (s *transactionService) GetTransactionBySMSID(smsID uint64) (*entity.Transaction, error) {
-	return nil, nil
-}
-
-func (s *transactionService) UpdateTransactionStatus(smsID uint64, status entity.TransactionStatusEnum) error {
-	return nil
+func (s *transactionService) UpdateTransactionStatus(ctx context.Context, smsID uint64, status entity.TransactionStatusEnum) error {
+	return s.transactionRepo.UpdateStatusBySMSID(ctx, smsID, status)
 }
